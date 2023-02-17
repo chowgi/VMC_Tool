@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  body {
+    font-family: Sans-Serif;
+  }
+</style>
+<div class="container py-3 bg-light rounded-3">
+  <div class="card mb-3 rounded-3 shadow-sm">
+    <div class="card-header py-3">
+      <h4 class="my-0 text-center fw-normal">All Resources</h4>
+    </div>
+    <hr>
+    <div id="table"></div>
+    <!-- Add the grid.js scripts -->
+    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <script src="https://unpkg.com/gridjs/plugins/selection/dist/selection.umd.js"></script>
+
+    <script>
+      const grid = new gridjs.Grid({
+        columns: [
+          { id: 'name', name: 'Name' },
+          { id: 'cpu', name: 'CPU' },
+          { id: 'memory', name: 'Memory' },
+          { id: 'vdisk', name: 'Consumed vDisk' },
+          { id: 'os', name: 'Consumed OS' },
+          {
+            id: 'my-select', 
+            name: "Exclude?",
+            formatter: (cell, row) => {
+              return gridjs.h('input', {
+                type: "checkbox",
+                class: "gridjs-checkbox",
+                onChange: (e) => handleSelect(row, e)
+              }, '');
+            }
+          },
+        ],
+        data: [
+          {% for vm in data %}
+            {
+              name: '{{ vm["VM"] }}',
+              cpu: '{{ vm["CPUs"] }}',
+              memory: '{{ vm["Memory"] }}',
+              vdisk: '{{ vm["Provisioned MiB"] }}',
+              os: '{{ vm["In Use MiB"] }}',
+            },
+          {% endfor %}
+        ],
+        search: {
+          selector: (cell, rowIndex, cellIndex) => [0, 1, 4].includes(cellIndex) ? cell : null,
+        },
+        sort: true,
+        pagination: true,
+        resizable: true
+      });
+
+      function handleSelect(row, e) {
+        const name =  row.cells[0].data;
+        const checked = e.target.checked;
+        console.log(`select`,name, checked)
+        fetch("/update-row", {
+          method: "POST",
+          headers:{"Content-Type": "application/json"},
+          body: JSON.stringify({
+            "name": name,
+            "Exclude": checked
+          }),
+          credentials: "include"
+        })
+      }
+      
+      grid.render(document.getElementById('table'));
+    </script>
+  </div>
+</div>
+{% endblock %}

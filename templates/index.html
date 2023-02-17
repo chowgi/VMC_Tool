@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VMC Tools</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-  GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+  </head>
+<body>
+  <div class="pricing-header p-5 pb-md-4 mx-auto text-center container-lg">
+    <h1 class="display-4 fw-normal">VMC Tools</h1>
+    <p class="fs-5 text-muted">Key metrics and tools to help you size a VMC environment.</p>
+  </div>
+  <div class="bg-light p-5 rounded-lg m-3 container-lg mx-auto rounded-3">
+    <form method="POST" action='/' enctype="multipart/form-data">
+      <div class="row g-2">
+        <div class="col-sm-10">
+          <label for="validationCustom01" class="form-label text-right">Upload a RVtools .xlsx output file to begin</label>
+            {{ form.csrf_token }}
+            {{ form.file(class="form-control form-control-lg") }}
+        </div>
+        <div class="col-sm align-self-end">
+          <input type="submit" class="btn btn-primary">
+        </div>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

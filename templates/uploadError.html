@@ -1,0 +1,22 @@
+{%extends "base.html"%}
+{%block content%}
+
+  <div class="bg-light p-5 rounded-lg m-3 container-lg mx-auto">
+    <h3 class="text-center">There was an error processing {{ session['filename']}}</h3>
+    <br>
+    <p>The tool expects the following column names in the vInfo Tab</p>
+    <ul>
+      <li>'CPUs'</li>
+      <li>'Memory'</li>
+      <li>Provisioned MiB</li>
+      <li>In Use MiB</li>
+    </ul>
+    <p>The tool also expects the following column names in the vPartition Tab</p>
+    <ul>
+      <li>'Consumed MiB'</li>
+      <li>'Capacity MiB'</li>
+    </ul>
+    <p><a href={{url_for('index')}}>Click here</a> to return to the home page and try again</p>
+  </div>
+
+{% endblock %}

@@ -1,0 +1,190 @@
+{%extends "base.html"%}
+{%block content%}
+
+<div class="container py-3 bg-light rounded-3">
+    <div class="card mb-3 rounded-3 shadow-sm">
+      <div class="card-header py-3">
+        <h4 class="my-0 text-center fw-normal">Summary Of All Resources</h4>
+      </div>
+      <div class="table-responsive">
+        <table class="table fs-6">
+          <tbody>
+            <tr>
+              <td><b>File name:</b> {{filename}} </th>
+              <td><b>vCentre:</b> {{meta[0]['Server']}}</th>
+              <td><b>Export Date:</b> {{meta[0]['xlsx creation datetime']}}</th>
+            </tr>
+          </tbody>
+        <table class="table text-center fs-6">
+          <thead>
+            <tr>
+              <th style="width: 34%;"></th>
+              <th style="width: 22%;">Powered On</th>
+              <th style="width: 22%;">Powered Off</th>
+              <th style="width: 22%;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" class="text-start">VM Count</th>
+              <td>{{totals['poweredOn']['count']}}</td>
+              <td>{{totals['poweredOff']['count']}}</td>
+              <td>{{totals['all']['count']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">Total vCPU</th>
+              <td>{{totals['poweredOn']['cpu']}}</td>
+              <td>{{totals['poweredOff']['cpu']}}</td>
+              <td>{{totals['all']['cpu']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">Total Memory (GiB)</th>
+              <td>{{totals['poweredOn']['memory']}}</td>
+              <td>{{totals['poweredOff']['memory']}}</td>
+              <td>{{totals['all']['memory']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">vDisk Provisioned (GiB)</th>
+              <td>{{totals['poweredOn']['provisioned_mib']}}</td>
+              <td>{{totals['poweredOff']['provisioned_mib']}}</td>
+              <td>{{totals['all']['provisioned_mib']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">vDisk Consumed (GiB)</th>
+              <td>{{totals['poweredOn']['in_use_mib']}}</td>
+              <td>{{totals['poweredOff']['in_use_mib']}}</td>
+              <td>{{totals['all']['in_use_mib']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">OS Provisioned (GiB)</th>
+              <td>{{totals['poweredOn']['capacity_mib']}}</td>
+              <td>{{totals['poweredOff']['capacity_mib']}}</td>
+              <td>{{totals['all']['capacity_mib']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">OS Consumed (GiB)</th>
+              <td>{{totals['poweredOn']['consumed_mib']}}</td>
+              <td>{{totals['poweredOff']['consumed_mib']}}</td>
+              <td>{{totals['all']['consumed_mib']}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <br>
+    <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+      <div class="col">
+        <div class="card mb-3 rounded-3 shadow-sm">
+          <div class="card-header py-3">
+            <h4 class="my-0 fw-normal">Top CPU</h4>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush mt-3 mb-4">
+              {% for item in cpu %}
+                  <li class="list-group-item">{{ item[0] }}  ({{ item[1] }} vCPUs) </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card mb-3 rounded-3 shadow-sm">
+          <div class="card-header py-3">
+            <h4 class="my-0 fw-normal">Top Memory</h4>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush mt-3 mb-4">
+              {% for item in memory %}
+                  <li class="list-group-item">{{ item[0] }}  ({{ item[1] }} GiB) </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card mb-3 rounded-3 shadow-sm">
+          <div class="card-header py-3">
+            <h4 class="my-0 fw-normal">Top OS Consumed</h4>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush mt-3 mb-4">
+              {% for item in os_consumed %}
+                  <li class="list-group-item">{{ item[0] }}  ({{ item[1] }} GiB) </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% if clusters %}  
+{% for key, value in clusters.items() %}
+    <div class="card mb-3 rounded-3 shadow-sm">
+      <div class="card-header py-3">
+        <h4 class="my-0 text-center fw-normal">Cluster Summary - {{key}}</h4>
+      </div>
+      <div class="table-responsive">
+        <table class="table text-center fs-6">
+          <thead>
+            <tr>
+              <th style="width: 34%;"></th>
+              <th style="width: 22%;">Powered On</th>
+              <th style="width: 22%;">Powered Off</th>
+              <th style="width: 22%;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" class="text-start">VM Count</th>
+              <td>{{value['poweredOn']['count']}}</td>
+              <td>{{value['poweredOff']['count']}}</td>
+              <td>{{value['all']['count']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">Total vCPU</th>
+              <td>{{value['poweredOn']['cpu']}}</td>
+              <td>{{value['poweredOff']['cpu']}}</td>
+              <td>{{value['all']['cpu']}}</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <th scope="row" class="text-start">Total Memory (GiB)</th>
+              <td>{{value['poweredOn']['memory']}}</td>
+              <td>{{value['poweredOff']['memory']}}</td>
+              <td>{{value['all']['memory']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">vDisk Provisioned (GiB)</th>
+              <td>{{value['poweredOn']['provisioned_mib']}}</td>
+              <td>{{value['poweredOff']['provisioned_mib']}}</td>
+              <td>{{value['all']['provisioned_mib']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">vDisk Consumed (GiB)</th>
+              <td>{{value['poweredOn']['in_use_mib']}}</td>
+              <td>{{value['poweredOff']['in_use_mib']}}</td>
+              <td>{{value['all']['in_use_mib']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">OS Provisioned (GiB)</th>
+              <td>{{value['poweredOn']['capacity_mib']}}</td>
+              <td>{{value['poweredOff']['capacity_mib']}}</td>
+              <td>{{value['all']['capacity_mib']}}</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">OS Consumed (GiB)</th>
+              <td>{{value['poweredOn']['consumed_mib']}}</td>
+              <td>{{value['poweredOff']['consumed_mib']}}</td>
+              <td>{{value['all']['consumed_mib']}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <br>
+{% endfor %}
+{% endif %}
+</div>
+
+{% endblock %}
