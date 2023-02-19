@@ -6,7 +6,7 @@ from wtforms.validators import DataRequired, Length, Email
 from datetime import timedelta
 from cachelib.simple import SimpleCache
 import pandas as pd
-from replit import db
+
 
 app = Flask(__name__)
 
