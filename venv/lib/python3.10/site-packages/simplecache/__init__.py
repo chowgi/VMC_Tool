@@ -1,0 +1,2 @@
+from simplecache import SimpleCache
+from simplecache import ThreadSafeSimpleCache
