@@ -25,12 +25,15 @@
           { id: 'vdisk', name: 'Consumed vDisk' },
           { id: 'os', name: 'Consumed OS' },
           {
-            id: 'my-select', 
-            name: "Exclude?",
+            id: 'exclude', 
+            name: "Exclude",
             formatter: (cell, row) => {
+              const name = row.cells[0].data;
+              const excluded = row.cells[row.cells.length-1].data;
               return gridjs.h('input', {
                 type: "checkbox",
                 class: "gridjs-checkbox",
+                checked: excluded,
                 onChange: (e) => handleSelect(row, e)
               }, '');
             }
@@ -39,11 +42,13 @@
         data: [
           {% for vm in data %}
             {
+              
               name: '{{ vm["VM"] }}',
               cpu: '{{ vm["CPUs"] }}',
               memory: '{{ vm["Memory"] }}',
               vdisk: '{{ vm["Provisioned MiB"] }}',
               os: '{{ vm["In Use MiB"] }}',
+              exclude: {{ vm["Exclude"]|lower }}
             },
           {% endfor %}
         ],
@@ -52,7 +57,12 @@
         },
         sort: true,
         pagination: true,
-        resizable: true
+        resizable: true,
+        style: { 
+          table: { 
+            'white-space': 'nowrap'
+    }
+  },
       });
 
       function handleSelect(row, e) {

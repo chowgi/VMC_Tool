@@ -1,5 +1,8 @@
 import pandas as pd
 import json, datetime, os, requests
+from cachelib.simple import SimpleCache
+
+cache = SimpleCache()
 
 def get_rvtools_data(file_path):
     # create vInfo DF from the uploaded rvtools file
@@ -37,13 +40,20 @@ def get_rvtools_data(file_path):
     #Get the meta data from vMetaData
     meta = df['vMetaData'].loc[:, ['xlsx creation datetime', 'Server']]
   
-
     return vInfo, meta
 
-
 def all_resources(df):
+    # Filter rows where Exclude is False
+    df = df.loc[df['Exclude'] == False]
+  
     #creeate the place holder values including resources for poweredOff
-    result = {'all': None, 'poweredOn': None, 'poweredOff': {'count': 'n/a', 'cpu': 'n/a', 'memory': 'n/a', 'in_use_mib': 'n/a', 'os_used': 'n/a'}}
+    result = {'all': None, 'poweredOn': None, 'poweredOff': {'count': 'n/a',
+                                                             'cpu': 'n/a',
+                                                             'memory': 'n/a',
+                                                             'provisioned_mib': 'n/a',
+                                                             'in_use_mib': 'n/a',
+                                                             'capacity_mib': 'n/a',
+                                                             'consumed_mib': 'n/a'}}
 
     # Get resource totals for all clusters
     count = df[['VM']].count().values[0]
@@ -64,7 +74,6 @@ def all_resources(df):
                   }
             # Update the dict
     result['all'] = all_resources
-    # Get resource totals for all datacenters
 
     # Group VMs by power state
     states = df.groupby(['Powerstate'])

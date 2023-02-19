@@ -1,13 +1,19 @@
-from flask import Flask, jsonify, render_template, request, redirect, session, url_for
 import os, json, vmdata
+from flask import Flask, jsonify, render_template, request, redirect, session, url_for
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, FileField
 from wtforms.validators import DataRequired, Length, Email
-from flask_paginate import Pagination, get_page_args, get_page_parameter
+from datetime import timedelta
+from cachelib.simple import SimpleCache
+import pandas as pd
+from replit import db
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+app.config['SECRET_KEY'] = "super_secret"
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+
+cache = SimpleCache()
 
 class FileUploadForm(FlaskForm):
     file = FileField(validators=[DataRequired()])
@@ -20,15 +26,27 @@ def index():
         session['filename'] = form.file.data.filename
         session['path'] = 'uploads/' + session['filename']
         form.file.data.save(session['path'])
+
+        # load df and meta into cache
+        df, meta = vmdata.get_rvtools_data(session['path'])
+        cache.set('df', df, timeout=None)
+        cache.set('meta', meta, timeout=None)
+
+        #Delete the file
+        os.remove(session['path'])
         
-        return redirect(url_for('details'))
+        return redirect(url_for('summary'))
 
     return render_template('index.html', form=form)
 
 @app.route('/summary', methods=['GET','POST'])
-def details():
-    df, meta = vmdata.get_rvtools_data(session['path'])
-    #os.remove(session['path'])
+def summary():
+    df = cache.get('df')
+    meta = cache.get('meta')
+  
+    if df is None or meta is None:
+        return redirect(url_for('index'))
+  
     totals = vmdata.all_resources(df)
     cpu = vmdata.top_cpu(df)
     memory = vmdata.top_memory(df)
@@ -58,9 +76,20 @@ def details():
 
 @app.route('/vmlist')
 def vmlist():
-    # Read data into a Pandas dataframe
-    df, _ = vmdata.get_rvtools_data(session['path'])
-    
+    # Read data from cache or get it from the database
+    df = cache.get('df')
+    if df is None:
+        return redirect(url_for('index'))
+    else:
+        # Update data in cache based on changes from /update-row route
+        updated_data = request.args.get('updated_data')
+        if updated_data:
+            updated_data = json.loads(updated_data)
+            row_index = updated_data['row_index']
+            updated_row = updated_data['row_data']
+            df.at[row_index, 'Exclude'] = updated_row['Exclude']
+            cache.set('df', df)
+
     # Convert the Pandas dataframe to a dictionary
     data = df.to_dict('records')
     
@@ -69,23 +98,26 @@ def vmlist():
 # define the route to update the row in the data variable
 @app.route('/update-row', methods=['POST'])
 def update_row():
-  # get the row data from the request body
-  row_data = request.get_json()
-  df, _ = vmdata.get_rvtools_data(session['path'])
-  data = df.to_dict('records')
-  print("row", request.get_json())
-  changed_data = {}
-  # update the row in the data variable
-  for i, vm in enumerate(data):
-    if vm['VM'] == row_data['name']:
-      data[i]['Exclude'] = row_data['Exclude']
-      changed_data = data[i]
-      print("data[i]", data[i])
-      break
+    # get the row data from the request body
+    row_data = request.get_json()
+    df = cache.get('df')
+    data = df.to_dict('records')
+    print("row", request.get_json())
+    changed_data = {}
+    # update the row in the data variable
+    for i, vm in enumerate(data):
+      if vm['VM'] == row_data['name']:
+        data[i]['Exclude'] = row_data['Exclude']
+        changed_data = data[i]
+        print("data[i]", data[i])
+        break
 
-  # return a JSON response indicating success
-  print('boom!')
-  return jsonify({'success': True, 'changed_data': changed_data})
+    # update the cache with the modified dataframe
+    df = pd.DataFrame(data)
+    cache.set('df', df, timeout=None)
+  
+    # return a JSON response indicating success
+    return jsonify({'success': True, 'changed_data': changed_data})
 
 @app.errorhandler(404)
 def page_not_found(error):
